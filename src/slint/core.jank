@@ -1,0 +1,101 @@
+(ns slint.core
+  (:require [clojure.string])
+  (:include "slint.h" "slint-interpreter.h" "slint/support.hpp"))
+
+(def ^:dynamic *window-handle* nil)
+
+(defn compile-path
+  "Compile a .slint file and return the resulting component definition.
+
+  Options:
+    - :style - the default look and feel of widgets, for ex. 'fluent',
+               'material', etc.
+    - :translation-domain - the domain used for language translations
+    - :include-paths - paths to search for imported `.slint` files
+
+  Throws if compilation fails."
+  [path & {:keys [style translation-domain include-paths]}]
+  (let [compiler (cpp/slint.interpreter.ComponentCompiler)]
+    (when style (.set_style compiler (.c_str (cpp/cast std.string style))))
+    (when translation-domain (.set_translation_domain compiler (.c_str (cpp/cast std.string style))))
+    (when include-paths (.set_include_paths compiler include-paths))
+    (if-let [result (.build_from_path compiler (.c_str (cpp/cast std.string path)))]
+      (cpp/box (cpp/new slint.interpreter.ComponentDefinition (cpp/* result)))
+      (throw (ex-info (clojure.string/join "\n" (.diagnostics compiler)) {})))))
+
+(defn set-properties
+  "Like `set-state`, but requires a handle to the root component."
+  [handle-box kvs]
+  (let [handle    (cpp/unbox (:* slint.core.component_handle_helper) handle-box)
+        component (cpp/* (.upgrade handle))]
+    (doseq [[k v] kvs]
+      (let [prop (name k)]
+        (cpp/.set_property component (.c_str (cpp/cast std.string prop)) v)))))
+
+(defn set-state
+  "Given a map of property names and their values, apply those values to the
+  root component. Any properties which are not declared in the root component
+  will be ignored.
+
+  Should only be called from within a callback, otherwise use `set-properties`."
+  [state]
+  (set-properties *window-handle* state))
+
+(defn get-properties
+  "Like `get-state`, but requires a handle to the root component."
+  [handle-box]
+  (let [handle     (cpp/unbox (:* slint.core.component_handle_helper) handle-box)
+        component  (cpp/* (.upgrade handle))
+        properties (identity (.properties (.definition component)))]
+    (loop [ps properties
+           m  {}]
+      (if (empty? ps)
+        m
+        (let [k (:name (first ps))
+              v (cpp/.get_property component (.c_str (cpp/cast std.string k)))]
+          (recur (rest ps) (assoc m k (cpp/* v))))))))
+
+(defn get-state
+  "Returns a map of all properties declared on the root component to their
+  current values.
+
+  Should only be called from within a callback, otherwise use `get-properties`."
+  []
+  (get-properties *window-handle*))
+
+(defn- make-callback [handle-box f]
+  (cpp/box
+   (cpp/new cpp/slint.core.slint_callback
+            (fn [& args]
+              (binding [*window-handle* handle-box]
+                (apply f args))))))
+
+(defn- set-callback [handle-box name f]
+  (let [handle    (cpp/unbox (:* slint.core.component_handle_helper) handle-box)
+        component (cpp/* (.upgrade handle))
+        f         (make-callback handle-box f)]
+    (.set_callback component
+                   (.c_str (cpp/cast std.string name))
+                   (cpp/* (cpp/unbox (:* cpp/slint.core.slint_callback) f)))))
+
+
+(defn create
+  "Create and show a new instance of a compiled component definition."
+  [component-definition & {:keys [state callbacks]}]
+  (let [component-definition (cpp/unbox (:* slint.interpreter.ComponentDefinition) component-definition)
+        root-handle          (cpp/.create component-definition)
+        root-handle-box      (cpp/box (cpp/new slint.core.component_handle_helper root-handle))]
+    (set-properties root-handle-box state)
+    (doseq [[k cb] callbacks] (set-callback root-handle-box (name k) cb))
+    (.show (cpp/* root-handle))
+    root-handle-box))
+
+(defn run-event-loop! []
+  (cpp/slint.run_event_loop cpp/slint.EventLoopMode.QuitOnLastWindowClosed))
+
+(defn invoke-from-event-loop [f]
+  (cpp/slint.invoke_from_event_loop
+   (cpp/slint.core.slint_callback f)))
+
+(defn quit-event-loop! []
+  (cpp/slint.quit_event_loop))

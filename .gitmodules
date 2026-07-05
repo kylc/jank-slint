@@ -1,0 +1,6 @@
+[submodule "slint-sys/lib/slint"]
+	path = slint-sys/lib/slint
+	url = https://github.com/slint-ui/slint
+[submodule "slint-sys/lib/corrosion"]
+	path = slint-sys/lib/corrosion
+	url = https://github.com/corrosion-rs/corrosion

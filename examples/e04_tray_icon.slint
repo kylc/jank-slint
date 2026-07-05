@@ -1,0 +1,14 @@
+export component Root inherits SystemTrayIcon {
+    callback quit();
+
+    tooltip: "My tray icon";
+
+    Menu {
+        MenuItem {
+            title: "Quit";
+            activated => {
+                quit();
+            }
+        }
+    }
+}

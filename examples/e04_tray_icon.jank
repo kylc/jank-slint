@@ -1,0 +1,11 @@
+(ns e04-tray-icon
+  (:require [slint.core :as slint]))
+
+;; Example of creating a tray icon, instead of a top-level window.
+;; TODO: not tested on all platforms
+
+(defn -main []
+  (let [tray (-> (slint/compile-path "examples/e04_tray_icon.slint" {})
+                 (slint/create {}))]
+    (slint/run-event-loop!)))
+

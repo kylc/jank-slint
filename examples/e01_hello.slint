@@ -1,0 +1,21 @@
+import { LineEdit, VerticalBox } from "std-widgets.slint";
+
+export component Root inherits Window {
+    title: "slint-demo";
+
+    in-out property <string> name;
+
+    VerticalBox {
+        alignment: space-around;
+        padding: 15px;
+
+        LineEdit {
+            text <=> root.name;
+            placeholder-text: "Enter your name...";
+        }
+
+        Text {
+            text: "Hello, \{ root.name}";
+        }
+    }
+}

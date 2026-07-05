@@ -1,0 +1,16 @@
+(ns e01-hello
+  (:require [slint.core :as slint]))
+
+;; The simplest use is to compile a .slint file definition, create an instance
+;; of the compiled component, and then run the event loop.
+;;
+;; The .slint file can interaction logic and state of its own, just like in a
+;; Rust or C++ slint app.
+;;
+;; NOTE: you must hold onto the top-level window reference for the duration of
+;; the event loop.
+
+(defn -main []
+  (let [window (-> (slint/compile-path "examples/e01_hello.slint" {})
+                   (slint/create {}))]
+    (slint/run-event-loop!)))

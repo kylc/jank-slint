@@ -1,0 +1,46 @@
+import { Button, HorizontalBox, VerticalBox } from "std-widgets.slint";
+
+component Page1 inherits VerticalBox {
+    Text {
+        text: "Step 1....";
+    }
+}
+
+component Page2 inherits VerticalBox {
+    Text {
+        text: "Step 2....";
+    }
+
+    Rectangle {
+        color: red;
+        width: 50px;
+        height: 50px;
+    }
+}
+
+export component Root inherits Window {
+    title: "slint-demo";
+
+    in-out property <int> current-page: 1;
+
+    VerticalBox {
+        if root.current_page == 1: Page1 { }
+        if root.current_page == 2: Page2 { }
+
+        HorizontalBox {
+            Button {
+                text: "Back";
+                clicked => {
+                    root.current_page -= 1;
+                };
+            }
+
+            Button {
+                text: "Next";
+                clicked => {
+                    root.current_page += 1;
+                };
+            }
+        }
+    }
+}

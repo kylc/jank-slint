@@ -1,0 +1,10 @@
+(ns e03-pages
+  (:require [slint.core :as slint]))
+
+;; Just like in a C++ or Rust slint application, a root component can swap out
+;; its content to display multiple "pages".
+
+(defn -main []
+  (let [window (-> (slint/compile-path "examples/e03_pages.slint" {})
+                   (slint/create {}))]
+    (slint/run-event-loop!)))

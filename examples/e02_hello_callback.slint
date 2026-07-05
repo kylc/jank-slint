@@ -1,0 +1,33 @@
+import { Button, LineEdit, VerticalBox } from "std-widgets.slint";
+
+export component Root inherits Window {
+    title: "slint-demo";
+
+    in-out property <string> display-text;
+
+    callback edited(text: string);
+    callback quit();
+
+    VerticalBox {
+        alignment: space-around;
+        padding: 15px;
+
+        LineEdit {
+            edited(text) => {
+                root.edited(text)
+            };
+            placeholder-text: "Enter your name...";
+        }
+
+        Text {
+            text <=> root.display-text;
+        }
+
+        Button {
+            text: "Quit";
+            clicked() => {
+                quit();
+            };
+        }
+    }
+}

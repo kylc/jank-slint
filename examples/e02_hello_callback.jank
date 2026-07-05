@@ -1,0 +1,33 @@
+(ns e02-hello-callback
+  (:require [slint.core :as slint]))
+
+;; Not all logic/state can or should be defined in the .slint file. When
+;; creating the component you can pass an initial :state value which sets the
+;; associated properties in the root component before showing it.
+;;
+;; You can also define :callbacks which map to callbacks defined in the .slint
+;; file on the root component. Any arguments defined on the callback in the
+;; .slint file will be passed to the jank function.
+;;
+;; The slint/get-state and slint/set-state functions can be used to retrieve all
+;; root component property values and set some root component property values,
+;; respectively.
+
+(defn on-edited [text]
+  (slint/set-state {:display-text (format "Hello, {}!" text)}))
+
+(defn on-quit []
+  (slint/quit-event-loop!))
+
+(defn -main []
+  (let [window (-> (slint/compile-path "examples/e02_hello_callback.slint" {})
+                   (slint/create {:state     {:display-text "Waiting for input..."}
+                                  :callbacks {:edited #'on-edited
+                                              :quit   #'on-quit}}))]
+    ;; You can also interact with the window from outside a callback.
+    (future
+      (sleep 5000)
+      (slint/invoke-from-event-loop
+       #(slint/set-properties window {:display-text "Timed out..."})))
+
+    (slint/run-event-loop!)))

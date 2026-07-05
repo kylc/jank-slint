@@ -1,0 +1,27 @@
+(ns e06-state-management
+  (:require [slint.core :as slint]))
+
+;; State management is left to the user. In the end, any solution should
+;; probably end up using slint/get-state and slint/set-state.
+;;
+;; On top of that, you can set up a reagent or re-frame style state management
+;; by passing your callbacks through some custom middleware. For example...
+
+(def *state (atom {:counter      0
+                   :display-text "Waiting..."}))
+
+(defn middleware [f args]
+  (-> (swap! *state #(apply f % args))
+      (slint/set-state)))
+
+(defn on-edited [state text]
+  (-> state
+      (update :counter inc)
+      (assoc :display-text (format "Hello, {}!" text))))
+
+(defn -main []
+  (let [window (-> (slint/compile-path "examples/e06_state_management.slint" {})
+                   (slint/create {:state     @*state
+                                  :callbacks {:edited (fn [& args]
+                                                        (middleware #'on-edited args))}}))]
+    (slint/run-event-loop!)))

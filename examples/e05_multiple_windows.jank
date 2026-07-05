@@ -1,0 +1,10 @@
+(ns e05-multiple-windows
+  (:require [slint.core :as slint]))
+
+;; Example of creating multiple windows which each contain their own state.
+
+(defn -main []
+  (let [def (slint/compile-path "examples/e01_hello.slint" {})
+        w1  (-> def (slint/create {}))
+        w2  (-> def (slint/create {}))]
+    (slint/run-event-loop!)))
