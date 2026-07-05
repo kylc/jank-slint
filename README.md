@@ -9,7 +9,7 @@ Bindings to the [Slint](https://github.com/slint-ui/slint) GUI toolkit for jank.
 Add the following dependency to your Leiningen project file:
 
 ``` clojure
-[io.github.kylc/jank-slint "0.1.0"]
+[io.github.kylc/jank-slint "0.1.1"]
 ```
 
 Ensure that you have all of the Slint dependencies installed (Rust/cargo toolchain, graphics libs, etc.)
