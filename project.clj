@@ -12,4 +12,4 @@
              :release {:jank {:target-dir         "target/release"
                               :optimization-level 3
                               :runtime            :static}}}
-  :source-paths ["src" "examples"])
+  :source-paths ["src"])
