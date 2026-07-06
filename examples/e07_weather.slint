@@ -1,0 +1,54 @@
+import { HorizontalBox, VerticalBox } from "std-widgets.slint";
+
+export component Root inherits Window {
+    title: "slint-demo";
+    preferred-width: 250px;
+
+    in-out property <string> temperature: "-81";
+    in-out property <string> description: "Clear Skies";
+    in-out property <string> location: "Mars";
+    in-out property <string> last-updated: "99:99 AM UTC";
+
+    in-out property <image> image;
+
+    callback tick();
+
+    Timer {
+        interval: 5 * 60s;
+        running: true;
+        triggered() => { root.tick() };
+    }
+
+    HorizontalBox {
+        alignment: stretch;
+
+        Image {
+            source: root.image;
+            width: 90px;
+            height: 90px;
+        }
+
+        VerticalBox {
+            alignment: space-evenly;
+
+            Text {
+                text: "\{ root.temperature }℉";
+                font-weight: 700;
+            }
+            Text {
+                text <=> root.description;
+                font-weight: 700;
+            }
+            Text {
+                text <=> root.location;
+            }
+            Text {
+                horizontal-alignment: right;
+                color: gray;
+                text: "@ \{ root.last-updated }";
+                font-italic: true;
+                font-size: 0.8rem;
+            }
+        }
+    }
+}

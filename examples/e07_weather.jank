@@ -1,0 +1,23 @@
+(ns e07-weather
+  (:require [clojure.data.json :as json]
+            [jank.shell :refer [sh]]
+            [slint.core :as slint]))
+
+(defn get-state []
+  (let [w        (-> (sh "curl" "wttr.in?format=j1") (:out) (json/read-str))
+        icon-url (get-in w ["current_condition" 0 "weatherIconUrl" 0 "value"])]
+    {:temperature  (get-in w ["current_condition" 0 "FeelsLikeF"])
+     :description  (get-in w ["current_conditions" 0 "weatherDesc"])
+     :location     (get-in w ["nearest_area" 0 "areaName" 0 "value"])
+     :last-updated (format "{} UTC" (get-in w ["current_condition" 0 "observation_time"]))
+     :image        (do (sh "curl" "-o" "/tmp/weather.png" "-O" icon-url)
+                       {:type :image :url "/tmp/weather.png"})}))
+
+(defn on-tick []
+  (slint/set-state (get-state)))
+
+(defn -main []
+  (let [window (-> (slint/compile-path "examples/e07_weather.slint" {})
+                   (slint/create {:state     (get-state)
+                                  :callbacks {:tick #'on-tick}}))]
+    (slint/run-event-loop!)))
