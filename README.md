@@ -20,6 +20,13 @@ NOTE: When building your project, you must invoke lein-jank with `--disable-sand
 
 See the examples in the [examples](./examples) directory.
 
+<table>
+  <tr>
+    <td><a href="./examples/e07_weather.jank"><img src="./examples/e07_weather.png"></a></td>
+    <td>An auto-refreshing weather widget, pulling data from https://wttr.in</td>
+  </tr>
+</table>
+
 ## Licensing
 
 Ensure that you are in compliance with all licensing restrictions of the
