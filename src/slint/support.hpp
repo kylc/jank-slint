@@ -21,7 +21,8 @@ namespace jank::runtime
     return v;
   }
 
-  static slint::interpreter::Struct jank_to_slint_struct(obj::persistent_hash_map_ref o)
+  template <typename M>
+  static slint::interpreter::Struct jank_to_slint_struct(M o)
   {
     slint::interpreter::Struct s;
     for(auto const kv : make_sequence_range(o))
@@ -53,7 +54,8 @@ namespace jank::runtime
       case slint::interpreter::ValueType::Brush:
         throw std::runtime_error("TODO: port value Brush type");
       case slint::interpreter::ValueType::Image:
-        throw std::runtime_error("TODO: port value Image type");
+        // TODO: more comprehensive image type
+        return slint_value_to_jank(v.to_image()->path().value_or(""));
       case slint::interpreter::ValueType::Other:
         return jank_nil;
     }
@@ -89,9 +91,20 @@ namespace jank::runtime
         {
           return slint::SharedString(typed_o->data.view());
         }
-        else if constexpr(std::same_as<T, obj::persistent_hash_map>)
+        else if constexpr(jtl::is_any_same<T, obj::persistent_hash_map, obj::persistent_array_map>)
         {
-          return jank_to_slint_struct(typed_o);
+          auto kw_type = __rt_ctx->intern_keyword("type").expect_ok();
+          auto kw_image = __rt_ctx->intern_keyword("image").expect_ok();
+          if(typed_o->get(kw_type).equal(kw_image))
+          {
+              auto kw_url = __rt_ctx->intern_keyword("url").expect_ok();
+              auto url = typed_o->get(kw_url).to_string();
+              return slint::Image::load_from_path(url.c_str());
+          }
+          else
+          {
+            return jank_to_slint_struct(typed_o);
+          }
         }
         else
         {
